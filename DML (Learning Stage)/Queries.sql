@@ -1,3 +1,4 @@
+	Exercise: 25
 select distinct 
 	pt.maker 
 from product pt
@@ -13,7 +14,7 @@ join (
 	and pt.maker = pm.maker
 where pt.type = 'printer'
 
-	�������: 39
+	Exercise: 39
 select distinct
 	ship 
 from outcomes os
@@ -22,7 +23,7 @@ join battles bs
 group by ship
 having min(iif(result = 'damaged', date,null)) < max(date)
 
-	�������: 41
+	Exercise: 41
 with ut
 	as (
 		select model,price from pc
@@ -48,7 +49,7 @@ from product pt
 join ut on pt.model = ut.model
 group by pt.maker
 
-	�������: 47
+	Exercise: 47
 select 
 	country 
 from classes cs
@@ -74,7 +75,7 @@ join (
 group by country
 having max(flag) = 0
 
-	�������: 51
+	Exercise: 51
 select 
 	ship 
 from (
@@ -94,7 +95,7 @@ from (
 ) t2
 where t2.rnk = 1
 
-	�������: 56
+	Exercise: 56
 select 
 	cs.class, 
 	count(ship) sunked 
@@ -111,7 +112,7 @@ left join (
     on cs.class = t1.class
 group by cs.class
 
-	�������: 57
+	Exercise: 57
 select 
 	coalesce(class,ship) class, 
 	count(case when result = 'sunk' then result end) sunks 
@@ -122,7 +123,7 @@ group by coalesce(class,ship)
 having count(distinct coalesce(ship,name)) > 2 
        and max(result) = 'sunk'
 
-	�������: 58
+	Exercise: 58
 with raw_data(maker,type,model)
 	as (
 		select distinct
@@ -149,7 +150,7 @@ select
 	cast((cnt_per_type/cnt_total)*100 as decimal(10,2)) prcnt
 from cnt_cacl_table
 
-	�������: 60 
+	Exercise: 60 
 select 
 	point, 
 	sum(case when type = 'inc' then inc else -out end) remain 
@@ -161,7 +162,7 @@ from (
 where date < '2001-04-15'
 group by point
 
-	�������: 64
+	Exercise: 64
 select
 	point,
 	date,
@@ -182,7 +183,7 @@ from (
 	 ) raw_data
 group by point,date,type
 
-	�������: 65
+	Exercise: 65
 select 
 	row_number() over (order by maker,right(type,1)) rn,
 	case 
@@ -194,7 +195,7 @@ select
 from product
 group by maker,type
 
-	�������: 66
+	Exercise: 66
 with rt(s_date)
 	as (
 		select cast('2003-04-01' as datetime) s_date 
@@ -212,7 +213,7 @@ left join pass_in_trip pit
 	and pit.trip_no in (select trip_no from trip where town_from = 'rostov')
 group by s_date
 
-	�������: 68
+	Exercise: 68
 select 
 	count(*) cnt_top_trips 
 from (
@@ -224,7 +225,7 @@ from (
 	 ) dt
 where trips_rnk = 1
 
-	�������: 69
+	Exercise: 69
 select distinct
 	point,
 	convert(char(10),date,103) date,
@@ -235,7 +236,7 @@ from (
 	  select point,date,-out from outcome
 	 ) t
  
-	�������: 76
+	Exercise: 76
 with ct 
 	as (
 		select
@@ -254,7 +255,7 @@ from ct
 group by id_psg
 having max(place_cnt) = 1
 
-	�������: 82
+	Exercise: 82
 with dt 
 	as (
 		select 
@@ -270,7 +271,7 @@ select
 from dt
 where lc is not null
 
-	�������: 88
+	Exercise: 88
 select top 1 with ties
 	(select name from passenger pr where pr.id_psg = pit.id_psg) name,
 	count(tp.trip_no) trip_cnt,
@@ -282,7 +283,7 @@ group by id_psg
 having min(id_comp) = max(id_comp)
 order by count(tp.trip_no) desc
 
-	�������: 92
+	Exercise: 92
 select
 	(select q_name from utq where utq.q_id = dt.b_q_id) q_name
 from (
@@ -295,7 +296,7 @@ from (
 group by b_q_id
 having min(lvl) = 0
 
-	�������: 93 
+	Exercise: 93 
 select distinct 
 	(select name from company cy where cy.id_comp = tp.id_comp) comp,
 	sum(datediff(mi,time_out,case 
@@ -316,7 +317,7 @@ left join (
 	on tp.trip_no = pit.trip_no
 where pit.trip_no is not null
 
-	�������: 94
+	Exercise: 94
 with dates (s_date, n)  
 	as (
 		select top 1 
@@ -364,7 +365,7 @@ left join (
 ) dt
 	on ds.s_date = dt.date
 
-	�������: 96
+	Exercise: 96
 select distinct 
 	v_name 
 from (
