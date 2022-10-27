@@ -478,3 +478,95 @@ join utv
 where  red_cnt >= 2 
        and blue_check = 'found'
 ```
+
+## 99
+Рассматриваются только таблицы Income_o и Outcome_o. Известно, что прихода/расхода денег в воскресенье не бывает.
+Для каждой даты прихода денег на каждом из пунктов определить дату инкассации по следующим правилам:
+1. Дата инкассации совпадает с датой прихода, если в таблице Outcome_o нет записи о выдаче денег в эту дату на этом пункте.
+2. В противном случае - первая возможная дата после даты прихода денег, которая не является воскресеньем и в Outcome_o не отмечена выдача денег сдатчикам вторсырья в эту дату на этом пункте.
+Вывод: пункт, дата прихода денег, дата инкассации.
+
+``` sql
+with cte1 -- возвращает даты, в которые изначально была выдача день в день или на след. день, с следующим свободным днем
+ as (
+select 
+	t2.point,
+	t2.date_inc,
+/* Берем ближающую, т.е. следующую дату (из условия ниже понимаем, что добавление не создаст пересечений с выдачей */
+	(select dateadd(dd,case when datename(dw,min(date)) = 'Saturday' then 2 else 1 end, min(date))
+	 from (
+		select point, date
+		from outcome_o o1
+/* Отбираем только те даты, добавляя к которым день или два будет день без выдачи */
+		where not exists (
+			      select 1 from outcome_o o2
+			      where o1.point = o2.point
+				    and case 
+					 when datename(dw,o1.date) = 'Saturday' then o1.date + 2 else o1.date + 1 
+					end = o2.date
+			     ) 
+	      ) t0
+/* Дата больше, чем предыдущая дата выдачи */
+	 where t0.point = t2.point and t0.date >= t2.date_coll 
+	) as date_coll2
+from (
+select
+	point,
+	date_inc,
+	date_coll
+from (
+	select
+		point,
+		date as date_inc,
+		case when datename(dw,date) = 'Saturday' then date + 2 else date + 1 end as date_coll
+	from outcome_o
+     ) t1
+where exists (
+	      select 2 from income_o i
+	      where t1.point = i.point and t1.date_inc = i.date
+	     )
+) t2
+join outcome_o o
+	on t2.point = o.point and t2.date_coll = o.date
+),
+cte2 -- возвращает даты, в которые не было выдачи
+ as (
+select 
+	point,
+	date as date_inc,
+	date as date_coll
+from income_o i
+where not exists (
+		  select 1 from outcome_o o
+		  where i.point = o.point and i.date = o.date
+		 )
+),
+cte3 -- возвращает даты, в которые была выдача, не попадающие на следующую выдачу
+ as (
+select
+	point,
+	date_inc,
+	date_coll
+from (
+	select
+		point,
+		date as date_inc,
+		case when datename(dw,date) = 'Saturday' then date + 2 else date + 1 end as date_coll
+	from outcome_o
+     ) t1
+where not exists (
+		  select 1 from outcome_o o
+		  where t1.point = o.point and t1.date_coll = o.date
+		 )
+      and exists (
+	    	  select 2 from income_o i
+	          where t1.point = i.point and t1.date_inc = i.date
+	         )
+)
+
+select * from cte1
+union all
+select * from cte2
+union all
+select * from cte3
+```
