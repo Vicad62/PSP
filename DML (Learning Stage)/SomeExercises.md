@@ -602,3 +602,30 @@ select
 	avg(price) over (partition by seq_no) as avg_price
 from grouped_data gd1
 ```
+
+## 104
+Для каждого класса крейсеров, число орудий которого известно, пронумеровать (последовательно от единицы) все орудия.
+Вывод: имя класса, номер орудия в формате 'bc-N'.
+
+``` sql
+with cte
+ as (
+	select 
+		class, 
+		cast(numguns as int) as numGuns 
+	from classes
+	where type = 'bc' 
+	      and numguns >= 1
+	union all
+	select 
+		class, 
+		numGuns - 1  
+	from cte
+	where numGuns - 1 > 0
+) 
+
+select 
+	class, 
+	concat('bc-',numguns) as nguns
+from cte
+```
