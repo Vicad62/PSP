@@ -570,3 +570,35 @@ select * from cte2
 union all
 select * from cte3
 ```
+
+## 101
+Таблица Printer сортируется по возрастанию поля code.
+Упорядоченные строки составляют группы: первая группа начинается с первой строки, каждая строка со значением color='n' начинает новую группу, группы строк не перекрываются.
+Для каждой группы определить: наибольшее значение поля model (max_model), количество уникальных типов принтеров (distinct_types_cou) и среднюю цену (avg_price).
+Для всех строк таблицы вывести: code, model, color, type, price, max_model, distinct_types_cou, avg_price. 
+
+``` sql
+with grouped_data
+ as (
+	select 
+		code,
+		model,
+		color,
+		type,
+		price,
+		sum(case when code = 1 then 1 when color='n' then 1 else 0 end) 
+			over (order by code asc) as seq_no
+	from printer
+)
+
+select
+	code,
+	model,
+	color,
+	type,
+	price,
+	max(model) over (partition by seq_no) as max_model,
+	(select count(distinct type) from grouped_data gd2 where gd1.seq_no = gd2.seq_no) as dist_type,
+	avg(price) over (partition by seq_no) as avg_price
+from grouped_data gd1
+```
