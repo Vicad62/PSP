@@ -54,3 +54,73 @@ left join user_transactions y
      on x.product_id = y.product_id
      and x.transaction_date - interval '1 year' = y.transaction_date
 ```
+
+## Maximize Prime Item Inventory (POSTGRE)
+Link: [Problem](https://datalemur.com/questions/prime-warehouse-storage)
+
+First solution
+``` sql
+with input_data as
+(
+  select item_type,
+         count(1) as cnt_items_in_pack,
+         sum(square_footage) as sum_square_in_pack,
+         500000::int as total_square
+  from inventory
+  group by item_type
+),
+prime_eligible_data as
+(
+  select item_type,
+         trunc(total_square/sum_square_in_pack) as cnt_combinatons,
+         cnt_items_in_pack * trunc(total_square/sum_square_in_pack) as cnt_items_in_wh,
+         total_square - (sum_square_in_pack * trunc(total_square/sum_square_in_pack)) as square_left
+  from input_data
+  where item_type = 'prime_eligible'
+),
+not_prime_data as
+(
+  select item_type,
+         trunc((select square_left from prime_eligible_data)/sum_square_in_pack) as cnt_combinatons,
+         cnt_items_in_pack * trunc((select square_left from prime_eligible_data)/sum_square_in_pack) as cnt_items_in_wh
+  from input_data
+  where item_type = 'not_prime'
+)
+
+select item_type,
+       cnt_items_in_wh
+from prime_eligible_data
+union all
+select item_type,
+       cnt_items_in_wh
+from not_prime_data
+```
+
+Second solution. More optimized.
+```sql
+with input_data as
+(
+  select item_type,
+         count(1) as cnt_items_in_pack,
+         sum(square_footage) as sum_square_in_pack,
+         500000::int as total_square
+  from inventory
+  group by item_type
+),
+prime_area_data as
+(
+  select trunc(total_square/sum_square_in_pack)*sum_square_in_pack as prime_area
+  from input_data
+  where item_type = 'prime_eligible'
+)
+
+select item_type,
+       case
+        when item_type = 'prime_eligible' 
+         then trunc((select prime_area from prime_area_data)/sum_square_in_pack)*cnt_items_in_pack
+        when item_type = 'not_prime' 
+         then trunc((total_square - (select prime_area from prime_area_data))/sum_square_in_pack)*cnt_items_in_pack
+        end as items_cnt_in_wh
+from input_data
+order by items_cnt_in_wh desc
+```
