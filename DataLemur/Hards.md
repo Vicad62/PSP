@@ -124,3 +124,33 @@ select item_type,
 from input_data
 order by items_cnt_in_wh desc
 ```
+
+## Median Google Search Frequency
+Link: [Problem](https://datalemur.com/questions/median-search-freq)
+
+First solution without recursion
+``` sql
+with searches_searies as
+(
+  select searches
+  from search_frequency
+  cross join generate_series(1, num_users)
+)
+
+select round(percentile_cont(0.5) within group (order by searches asc)::dec,1) as median
+from searches_searies
+```
+
+Secon solution with recursion
+``` sql
+with recursive searches_searies as
+(
+  select searches, num_users, 1 as n from search_frequency
+  union all
+  select searches, num_users, n + 1 from searches_searies
+  where n + 1 <= num_users
+)
+
+select round(percentile_cont(0.5) within group (order by searches asc)::dec,1) as median
+from searches_searies
+```
